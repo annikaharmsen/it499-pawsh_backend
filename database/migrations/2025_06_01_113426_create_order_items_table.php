@@ -1,5 +1,7 @@
 <?php
 
+use App\Models\Product;
+use App\Models\Order;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -13,6 +15,10 @@ return new class extends Migration
     {
         Schema::create('order_items', function (Blueprint $table) {
             $table->id();
+            $table->integer('quantity');
+            $table->float('price', 2);
+            $table->foreignIdFor(Product::class);
+            $table->foreignIdFor(Order::class);
             $table->timestamps();
         });
     }
