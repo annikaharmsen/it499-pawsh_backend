@@ -4,47 +4,62 @@ namespace App\Http\Controllers;
 
 use App\Http\Resources\UserResource;
 use App\Models\User;
+use Exception;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
 {
     public function register(Request $request): JsonResponse {
-        $validator = Validator::make($request->all(), [
-            'first_name' => 'required',
-            'last_name' => 'required',
-            'email' => 'required|email',
-            'password' => 'required'
-        ]);
-
-        if($validator->fails()){
+        try {
+            $credentials = $request->validate( [
+                'first_name' => 'required',
+                'last_name' => 'required',
+                'email' => 'required|email',
+                'password' => 'required'
+            ]);
+        } catch (ValidationException $e) {
             return $this->sendError('Validation Error.', Response::HTTP_BAD_REQUEST);
         }
 
-        $input = $request->all();
-        $input['password'] = bcrypt($input['password']);
-        $user = User::create($input);
-        $token = $user->createToken('pawsh');
+        $credentials['password'] = bcrypt($credentials['password']);
 
-        return $this->sendResponse('User register successfully.', ['token' => $token, 'user' => new UserResource($user)]);
+        try {
+            $user = User::create($credentials);
+        } catch (UniqueConstraintViolationException $e) {
+            return $this->sendError('This email has already been registered.', Response::HTTP_BAD_REQUEST);
+        }
+
+        $token = $user->createToken('pawsh')->plainTextToken;
+
+        return $this->sendResponse('User registered successfully.', ['token' => $token, 'user' => new UserResource($user)]);
     }
 
     public function login(Request $request): JsonResponse
     {
-        if (Auth::attempt($request->only('email', 'password'))) {
-            return response()->json(['message' => 'Invalid login details'], 401);
+        try {
+            $credentials = $request->validate([
+                'email' => 'required | email',
+                'password' => 'required'
+            ]);
+        } catch (ValidationException) {
+            return $this->sendError('Validation Error.', Response::HTTP_BAD_REQUEST);
         }
 
-        $user = User::where('email', $request['email'])->firstOrFail();
+        if (Auth::attempt($credentials)) {
+            $token = Auth::user()->createToken('pawsh')->plainTextToken;
 
-        $token = $user->createToken('auth_token')->plainTextToken;
-
-        return response()->json([
-            'access_token' => $token,
-            'token_type' => 'Bearer',
-        ]);
+            return $this->sendResponse('Login Successful', [
+                'token' => $token
+            ]);
+        }
+        else {
+            return $this->sendError('Invalid login details', 400);
+        }
     }
 }

@@ -9,8 +9,22 @@ use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\PaymentMethodController;
 use App\Http\Controllers\AddressController;
+use Illuminate\Support\Facades\App;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Route;
 
+// TEST ROUTES
+Route::post('/__reset', function () {
+    if (!App::environment('local', 'testing')) {
+        abort(403, 'Unauthorized.');
+    }
+
+    Artisan::call('migrate:fresh --seed');
+
+    return response()->json(['message' => 'Database reset.']);
+});
+
+// PUBLIC ROUTES
 Route::post('register', [AuthController::class, 'register']);
 Route::post('login', [AuthController::class, 'login']);
 
