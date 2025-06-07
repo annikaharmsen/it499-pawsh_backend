@@ -28,18 +28,18 @@ Route::post('/__reset', function () {
 Route::post('register', [AuthController::class, 'register']);
 Route::post('login', [AuthController::class, 'login']);
 
-Route::apiResource('user', controller: UserController::class);
+Route::apiResource('user', controller: UserController::class)->middleware('auth:sanctum');
 
-Route::apiResource('cart_item', controller: CartItemController::class);
+Route::apiResource('cart_item', controller: CartItemController::class)->middleware('auth:sanctum');
 
 Route::apiResource('product', controller: ProductController::class);
 
-Route::apiResource('order_item', controller: OrderItemController::class);
+Route::apiResource('order_item', controller: OrderItemController::class)->middleware('auth:sanctum');
 
-Route::apiResource('payment', controller: PaymentController::class);
+Route::apiResource('payment', controller: PaymentController::class)->middleware('auth:sanctum');
 
-Route::apiResource('order', controller: OrderController::class);
+Route::apiResource('order', controller: OrderController::class)->middleware('auth:sanctum');
 
-Route::apiResource('payment_method', controller: PaymentMethodController::class);
+Route::apiResource('payment_method', controller: PaymentMethodController::class)->middleware('auth:sanctum');
 
-Route::apiResource('address', controller: AddressController::class);
+Route::apiResource('address', controller: AddressController::class)->middleware('auth:sanctum');
