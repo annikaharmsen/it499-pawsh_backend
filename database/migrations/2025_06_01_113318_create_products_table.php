@@ -16,7 +16,7 @@ return new class extends Migration
             $table->string('title', 250);
             $table->text('description');
             $table->float('price', 2);
-            $table->integer('inventory');
+            $table->integer('inventory')->nullable();
             $table->timestamps();
         });
     }
