@@ -32,7 +32,9 @@ Route::apiResource('user', controller: UserController::class)->middleware('auth:
 
 Route::apiResource('cart_item', controller: CartItemController::class)->middleware('auth:sanctum');
 
-Route::apiResource('product', controller: ProductController::class);
+Route::apiResource('products', controller: ProductController::class)->only([
+    'index', 'show'
+]);
 
 Route::apiResource('order_item', controller: OrderItemController::class)->middleware('auth:sanctum');
 
@@ -42,4 +44,4 @@ Route::apiResource('order', controller: OrderController::class)->middleware('aut
 
 Route::apiResource('payment_method', controller: PaymentMethodController::class)->middleware('auth:sanctum');
 
-Route::apiResource('address', controller: AddressController::class)->middleware('auth:sanctum');
+Route::apiResource('addresses', controller: AddressController::class)->middleware('auth:sanctum');

@@ -2,25 +2,41 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\ProductResource;
+use App\Models\Address;
 use App\Models\Product;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class ProductController extends Controller
 {
+    private $storeRules = [
+        'title' => 'required | string | max:120',
+        'description' => 'required | string | max:500',
+        'price' => 'required | float',
+        'inventory' => 'nullable | int'
+    ];
+    private $updateRules = [
+        'title' => 'nullable | string | max:120',
+        'description' => 'nullable | string | max:500',
+        'price' => 'nullable | float',
+        'inventory' => 'nullable | int'
+    ];
+
+    public function respondWithOne(String $message, Product $product): JsonResponse {
+        return parent::sendResponse($message, ['product' => new ProductResource($product)]);
+    }
+
+    public function respondWithMany(String $message, mixed $products): JsonResponse {
+        return parent::sendResponse($message, ['products' => ProductResource::collection($products)]);
+    }
+
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        //
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
+        return $this->respondWithMany('Products retreived successfully', Product::all());
     }
 
     /**
@@ -36,15 +52,7 @@ class ProductController extends Controller
      */
     public function show(Product $product)
     {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Product $product)
-    {
-        //
+        return $this->respondWithOne('Product retreived successfully.', $product);
     }
 
     /**
