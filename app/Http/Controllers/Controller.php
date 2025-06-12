@@ -22,10 +22,12 @@ abstract class Controller
     }
 
     function sendError(string $message, int $status): JsonResponse {
-        return response()->json([
+        abort(
+            response()->json([
             'success' => false,
             'message' => $message
-        ], $status);
+        ], $status)
+    );
     }
 
     function validateOrError(Request $request, Array $rules) {
