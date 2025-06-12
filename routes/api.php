@@ -30,7 +30,7 @@ Route::post('login', [AuthController::class, 'login']);
 
 Route::apiResource('user', controller: UserController::class)->middleware('auth:sanctum');
 
-Route::apiResource('cart_item', controller: CartItemController::class)->middleware('auth:sanctum');
+Route::apiResource('cart', controller: CartItemController::class)->parameters(['cart' => 'cartItem'])->middleware('auth:sanctum');
 
 Route::apiResource('products', controller: ProductController::class)->only([
     'index', 'show'

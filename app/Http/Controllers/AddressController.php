@@ -20,7 +20,6 @@ class AddressController extends Controller
         'state' => 'required | string | max:120',
         'country' => 'required | string | max:120',
         'name' => 'required | string | max:120',
-        'user_id' => 'nullable | exists:users,id'
     ];
 
     private $updateRules = [
@@ -31,7 +30,6 @@ class AddressController extends Controller
         'state' => 'nullable | string | max:120',
         'country' => 'nullable | string | max:120',
         'name' => 'nullable | string | max:120',
-        'user_id' => 'nullable | exists:users,id'
     ];
 
     public function respondWithOne(String $message, Address $address): JsonResponse {
