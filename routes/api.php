@@ -36,8 +36,6 @@ Route::apiResource('products', controller: ProductController::class)->only([
     'index', 'show'
 ]);
 
-Route::apiResource('order_item', controller: OrderItemController::class)->middleware('auth:sanctum');
-
 Route::apiResource('payment', controller: PaymentController::class)->middleware('auth:sanctum');
 
 Route::apiResource('orders', controller: OrderController::class)->middleware('auth:sanctum');
