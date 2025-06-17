@@ -13,14 +13,12 @@ class ProductController extends Controller
     private $storeRules = [
         'title' => 'required | string | max:120',
         'description' => 'required | string | max:500',
-        'price' => 'required | float',
-        'inventory' => 'nullable | int'
+        'price' => 'required | float'
     ];
     private $updateRules = [
         'title' => 'nullable | string | max:120',
         'description' => 'nullable | string | max:500',
-        'price' => 'nullable | float',
-        'inventory' => 'nullable | int'
+        'price' => 'nullable | float'
     ];
 
     public function respondWithOne(String $message, Product $product): JsonResponse {

@@ -40,7 +40,7 @@ Route::apiResource('order_item', controller: OrderItemController::class)->middle
 
 Route::apiResource('payment', controller: PaymentController::class)->middleware('auth:sanctum');
 
-Route::apiResource('order', controller: OrderController::class)->middleware('auth:sanctum');
+Route::apiResource('orders', controller: OrderController::class)->middleware('auth:sanctum');
 
 Route::apiResource('payment_method', controller: PaymentMethodController::class)->middleware('auth:sanctum');
 

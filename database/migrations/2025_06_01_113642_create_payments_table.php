@@ -15,7 +15,6 @@ return new class extends Migration
     {
         Schema::create('payments', function (Blueprint $table) {
             $table->id();
-            $table->date('date');
             $table->float('amount', 2);
             $table->string('status', 100);
             $table->integer('transaction_reference_id');

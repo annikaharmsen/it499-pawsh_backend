@@ -35,6 +35,8 @@ class CartItemController extends Controller
     {
         $cart_items = Auth::user()->cart_items;
 
+        //TODO: implement out of stock behavior
+
         return $this->respondWithMany('User\'s cart items retreived successfully', $cart_items);
     }
 

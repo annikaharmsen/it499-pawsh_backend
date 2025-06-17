@@ -69,6 +69,10 @@ class AddressController extends Controller
      */
     public function show(Address $address)
     {
+        if ($address->user_id !== Auth::id()) {
+            return $this->sendError('Address not found for this user.', Response::HTTP_NOT_FOUND);
+        }
+
         return $this->respondWithOne('Address retreived successfully.', $address);
     }
 

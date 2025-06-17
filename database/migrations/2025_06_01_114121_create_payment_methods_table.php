@@ -15,7 +15,7 @@ return new class extends Migration
     {
         Schema::create('payment_methods', function (Blueprint $table) {
             $table->id();
-            // TODO: add payment methid fields
+            // TODO: add payment method fields
             $table->foreignIdFor(User::class);
             $table->foreignIdFor(Address::class);
             $table->timestamps();
