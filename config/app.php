@@ -2,6 +2,8 @@
 
 return [
 
+    'stripe' => new \Stripe\StripeClient(env('STRIPE_API_KEY')),
+
     /*
     |--------------------------------------------------------------------------
     | Application Name

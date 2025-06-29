@@ -14,6 +14,13 @@ class PaymentResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        return parent::toArray($request);
+        return [
+            'id' => $this->id,
+            'amount' => $this->amount,
+            'date' => $this->created_at->toDateTimeString(),
+            'status' => $this->status,
+            'order' => $this->order,
+            'method' => $this->method
+        ];
     }
 }

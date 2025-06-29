@@ -14,13 +14,10 @@ class OrderResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        $total = $this->items->reduce(function ($carry, $item) {
-            return $carry += $item->price * $item->quantity;
-        });
-
         return [
             'id' => $this->id,
-            'total' => $total,
+            'total' => $this->getTotal(),
+            'date' => $this->created_at->toDateTimeString(),
             'user' => $this->user,
             'address' => $this->address,
             'items' => $this->items,

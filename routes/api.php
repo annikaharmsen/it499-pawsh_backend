@@ -40,6 +40,8 @@ Route::apiResource('payment', controller: PaymentController::class)->middleware(
 
 Route::apiResource('orders', controller: OrderController::class)->middleware('auth:sanctum');
 
-Route::apiResource('payment_method', controller: PaymentMethodController::class)->middleware('auth:sanctum');
+//Route::apiResource('payment_method', controller: PaymentMethodController::class)->middleware('auth:sanctum');
 
 Route::apiResource('addresses', controller: AddressController::class)->middleware('auth:sanctum');
+
+Route::get('stripe-return', [PaymentController::class, 'store']);

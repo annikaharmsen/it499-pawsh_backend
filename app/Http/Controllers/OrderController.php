@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Resources\OrderResource;
 use App\Models\Order;
 use App\Models\OrderItem;
+use App\Models\Payment;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -51,11 +52,13 @@ class OrderController extends Controller
             $this->sendError('Order cannot be placed. There are no items in cart.', Response::HTTP_BAD_REQUEST);
         }
 
+        // create order
         $order = new Order($input);
         $order['status'] = 'processing';
         $order['user_id'] = Auth::id();
         $order->save();
 
+        // convert cart items to order items
         foreach ($cart_items as $item) {
             OrderItem::create([
                 'order_id'   => $order->id,
@@ -65,14 +68,37 @@ class OrderController extends Controller
             ]);
         }
 
-        foreach ($cart_items as $item) {
-            $item->delete();
-        }
-
         $order['status'] = 'awaiting payment';
         $order->save();
 
-        return $this->respondWithOne('Order placed successfully.', $order);
+        // create checkout session
+        $stripe = config('app')['stripe'];
+
+        $line_items = [];
+        foreach ($order->items as $item) {
+            $line_items[] = [
+                'price_data' => [
+                  'currency' => 'usd',
+                  'product' => $item->product->id,
+                  'unit_amount_decimal' => $item->price,
+                  'tax_behavior' => 'unspecified'
+                ],
+                'quantity' => $item->quantity,
+            ];
+        }
+
+        $session = $stripe->checkout->sessions->create([
+            'line_items' => $line_items,
+            'mode' => 'payment',
+            'ui_mode' => 'custom',
+            'return_url' => 'http://127.0.0.1:8001/stripe-return?session_id={CHECKOUT_SESSION_ID}',
+            'metadata' => [
+                'order_id' => $order->id,
+            ]
+        ]);
+
+        // send order and checkout session's client secret
+        $this->sendResponse('Order in progress', ['order' => new OrderResource($order), 'checkoutSessionClientSecret' => $session->client_secret]);
     }
 
     /**
