@@ -13,21 +13,21 @@ use Illuminate\Validation\ValidationException;
 class AddressController extends Controller
 {
     private $storeRules = [
-        'house_num' => 'required | integer | gt:0',
-        'apt_num' => 'integer | gt:0',
-        'street' => 'required | string | max:120',
+        'street_one' => 'required | string',
+        'street_two' => 'nullable | string',
         'city' => 'required | string | max:120',
         'state' => 'required | string | max:120',
+        'postalcode' => 'required | int',
         'country' => 'required | string | max:120',
         'name' => 'required | string | max:120',
     ];
 
     private $updateRules = [
-        'house_num' => 'nullable | integer | gt:0',
-        'apt_num' => 'nullable | integer | gt:0',
-        'street' => 'nullable | string | max:120',
+        'street_one' => 'nullable | string',
+        'street_two' => 'nullable | string',
         'city' => 'nullable | string | max:120',
         'state' => 'nullable | string | max:120',
+        'postalcode' => 'nullable | int',
         'country' => 'nullable | string | max:120',
         'name' => 'nullable | string | max:120',
     ];
@@ -58,7 +58,7 @@ class AddressController extends Controller
         $input = $this->validateOrError($request, $this->storeRules);
 
         $address = new Address($input);
-        $address['user_id'] = Auth::id();
+        $address['userid'] = Auth::id();
         $address->save();
 
         return $this->respondWithOne('Address saved successfully.', $address);
@@ -69,7 +69,7 @@ class AddressController extends Controller
      */
     public function show(Address $address)
     {
-        if ($address->user_id !== Auth::id()) {
+        if ($address->userid !== Auth::id()) {
             return $this->sendError('Address not found for this user.', Response::HTTP_NOT_FOUND);
         }
 
@@ -83,7 +83,7 @@ class AddressController extends Controller
     {
         $input = $this->validateOrError($request, $this->updateRules);
 
-        if ($address->user_id !== Auth::id()) {
+        if ($address->userid !== Auth::id()) {
             return $this->sendError('Address not found for this user.', Response::HTTP_NOT_FOUND);
         }
 
@@ -97,7 +97,7 @@ class AddressController extends Controller
      */
     public function destroy(Address $address)
     {
-        if ($address->user_id !== Auth::id()) {
+        if ($address->userid !== Auth::id()) {
             return $this->sendError('Address not found for this user.', Response::HTTP_NOT_FOUND);
         }
 

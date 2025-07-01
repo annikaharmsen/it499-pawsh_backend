@@ -9,17 +9,17 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class Address extends Model
 {
     protected $fillable = [
-        'house_num',
-        'apt_num',
-        'street',
+        'street_one',
+        'street_two',
         'city',
         'state',
+        'postalcode',
         'country',
         'name',
-        'user_id'
+        'userid'
     ];
 
     public function user(): BelongsTo {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class, 'userid');
     }
 }

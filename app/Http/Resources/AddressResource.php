@@ -16,11 +16,11 @@ class AddressResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'house_num' => $this->house_num,
-            'apt_num' => $this->apt_num,
-            'street' => $this->street,
+            'street_one' => $this->street_one,
+            'street_two' => $this->street_two,
             'city' => $this->city,
             'state' => $this->state,
+            'postalcode' => $this->postalcode,
             'country' => $this->country,
             'name' => $this->name
         ];
