@@ -13,19 +13,19 @@ class CartItemController extends Controller
 {
     private $storeRules = [
         'quantity' => 'required | integer | gte:0',
-        'product_id' => 'required | exists:products,id'
+        'productid' => 'required | exists:products,id'
     ];
 
     private $updateRules = [
         'quantity' => 'required | integer | gte:0',
     ];
 
-    public function respondWithOne(String $message, CartItem $cart_item): JsonResponse {
-        return parent::sendResponse($message, ['cart_item' => new CartItemResource($cart_item)]);
+    public function respondWithOne(String $message, CartItem $cartitem): JsonResponse {
+        return parent::sendResponse($message, ['cartitem' => new CartItemResource($cartitem)]);
     }
 
-    public function respondWithMany(String $message, mixed $cart_items): JsonResponse {
-        return parent::sendResponse($message, ['cart_items' => CartItemResource::collection($cart_items)]);
+    public function respondWithMany(String $message, mixed $cartitems): JsonResponse {
+        return parent::sendResponse($message, ['cartitems' => CartItemResource::collection($cartitems)]);
     }
 
     /**
@@ -33,11 +33,11 @@ class CartItemController extends Controller
      */
     public function index()
     {
-        $cart_items = Auth::user()->cart_items;
+        $cartitems = Auth::user()->cartitems;
 
         //TODO: implement out of stock behavior
 
-        return $this->respondWithMany('User\'s cart items retreived successfully', $cart_items);
+        return $this->respondWithMany('User\'s cart items retreived successfully', $cartitems);
     }
 
     /**
@@ -47,23 +47,23 @@ class CartItemController extends Controller
     {
         $input = $this->validateOrError($request, $this->storeRules);
 
-        $cart_item = CartItem::where([
-            'user_id' => Auth::id(),
-            'product_id' => $input['product_id'],
+        $cartitem = CartItem::where([
+            'userid' => Auth::id(),
+            'productid' => $input['productid'],
         ])->first();
 
-        if (!$cart_item) {
-            $cart_item = new CartItem([
-                'user_id' => Auth::id(),
-                'product_id' => $input['product_id'],
+        if (!$cartitem) {
+            $cartitem = new CartItem([
+                'userid' => Auth::id(),
+                'productid' => $input['productid'],
                 'quantity' => 0
             ]);
         }
 
-        $cart_item->quantity += $input['quantity'];
-        $cart_item->save();
+        $cartitem->quantity += $input['quantity'];
+        $cartitem->save();
 
-        return $this->respondWithOne('Product was successfully added to cart.', $cart_item);
+        return $this->respondWithOne('Product was successfully added to cart.', $cartitem);
     }
 
     /**
@@ -81,8 +81,8 @@ class CartItemController extends Controller
     {
         $input = $this->validateOrError($request, $this->updateRules);
 
-        if ($cartItem->user_id !== Auth::id()) {
-            return $this->sendError('Item not found for this user. ' . 'Cart item user id: ' . $cartItem->user_id . ', Authenticated user id: ' . Auth::id(), Response::HTTP_NOT_FOUND);
+        if ($cartItem->userid !== Auth::id()) {
+            return $this->sendError('Item not found for this user. ' . 'Cart item user id: ' . $cartItem->userid . ', Authenticated user id: ' . Auth::id(), Response::HTTP_NOT_FOUND);
         }
 
         $cartItem->update($input);
@@ -96,12 +96,12 @@ class CartItemController extends Controller
     public function destroy(CartItem $cartItem)
     {
 
-        if ($cartItem->user_id !== Auth::id()) {
+        if ($cartItem->userid !== Auth::id()) {
             return $this->sendError('Cart item not found for this user.', Response::HTTP_NOT_FOUND);
         }
 
         $cartItem->delete();
 
-        return $this->sendResponse('Item successfully removed from cart');
+        return $this->respondWithMany('Item successfully removed from cart', Auth::user()->cartitems);
     }
 }
