@@ -10,29 +10,29 @@ class Order extends Model
 {
     protected $fillable = [
         'status',
-        'user_id',
-        'address_id'
+        'userid',
+        'shipping_addressid'
     ];
 
     public function getTotal(): float {
         return $this->items->reduce(function ($carry, $item) {
-            return $carry += $item->price * $item->quantity;
+            return $carry += $item->unitprice * $item->quantity;
         });
     }
 
     public function user(): BelongsTo {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class, 'userid');
     }
 
-    public function address(): BelongsTo {
-        return $this->belongsTo(Address::class);
+    public function shipping_address(): BelongsTo {
+        return $this->belongsTo(Address::class, 'shipping_addressid');
     }
 
     public function items(): HasMany {
-        return $this->hasMany(OrderItem::class);
+        return $this->hasMany(OrderItem::class, 'orderid');
     }
 
-    public function payments(): BelongsTo {
-        return $this->belongsTo(Payment::class);
+    public function payments(): hasMany {
+        return $this->hasMany(Payment::class, 'orderid');
     }
 }

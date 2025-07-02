@@ -14,7 +14,7 @@ use Illuminate\Support\Facades\Auth;
 class OrderController extends Controller
 {
     private $storeRules = [
-        'address_id' => 'required | exists:addresses,id'
+        'shipping_addressid' => 'required|exists:addresses,id'
     ];
 
     private $updateRules = [
@@ -46,42 +46,52 @@ class OrderController extends Controller
     {
         $input = $this->validateOrError($request, $this->storeRules);
 
-        $cart_items = Auth::user()->cart_items()->get();
+        $cartitems = Auth::user()->cartitems()->get();
 
-        if ($cart_items->count() < 1) {
+        // check for empty cart
+        if ($cartitems->count() < 1) {
             $this->sendError('Order cannot be placed. There are no items in cart.', Response::HTTP_BAD_REQUEST);
         }
 
         // create order
         $order = new Order($input);
         $order['status'] = 'processing';
-        $order['user_id'] = Auth::id();
+        $order['userid'] = Auth::id();
         $order->save();
 
         // convert cart items to order items
-        foreach ($cart_items as $item) {
+        foreach ($cartitems as $item) {
             OrderItem::create([
-                'order_id'   => $order->id,
-                'product_id' => $item->product_id,
-                'quantity'   => $item->quantity,
-                'price'      => $item->product->price
+                'orderid'   => $order->id,
+                'productid' => $item->productid,
+                'quantity'  => $item->quantity,
+                'unitprice' => intval($item->product->price) //TODO: send float once orderitems db table is corrected
             ]);
         }
 
+        // update order status
         $order['status'] = 'awaiting payment';
         $order->save();
 
+        // clear cart
+        foreach ($cartitems as $item) {
+            $item->delete();
+        }
+
         // create checkout session
         $stripe = config('app')['stripe'];
+        $DOLLARS_TO_CENTS = 100;
 
+        // create stripe checkout session
         $line_items = [];
         foreach ($order->items as $item) {
             $line_items[] = [
                 'price_data' => [
                   'currency' => 'usd',
-                  'product' => $item->product->id,
-                  'unit_amount_decimal' => $item->price,
-                  'tax_behavior' => 'unspecified'
+                  'product_data' => [
+                    'name' => $item->product->name,
+                  ],
+                  'unit_amount' => (int) $item->unitprice * $DOLLARS_TO_CENTS,
                 ],
                 'quantity' => $item->quantity,
             ];
@@ -93,12 +103,12 @@ class OrderController extends Controller
             'ui_mode' => 'custom',
             'return_url' => 'http://127.0.0.1:8001/stripe-return?session_id={CHECKOUT_SESSION_ID}',
             'metadata' => [
-                'order_id' => $order->id,
+                'orderid' => $order->id,
             ]
         ]);
 
         // send order and checkout session's client secret
-        $this->sendResponse('Order in progress', ['order' => new OrderResource($order), 'checkoutSessionClientSecret' => $session->client_secret]);
+        return $this->sendResponse('Order in progress', ['order' => new OrderResource($order), 'checkoutSessionClientSecret' => $session->client_secret]);
     }
 
     /**
@@ -106,7 +116,7 @@ class OrderController extends Controller
      */
     public function show(Order $order)
     {
-        if ($order->user_id !== Auth::id()) {
+        if ($order->userid !== Auth::id()) {
             return $this->sendError('Order not found for this user.', Response::HTTP_NOT_FOUND);
         }
 

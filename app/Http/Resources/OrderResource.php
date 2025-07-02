@@ -19,7 +19,7 @@ class OrderResource extends JsonResource
             'total' => $this->getTotal(),
             'date' => $this->created_at->toDateTimeString(),
             'user' => $this->user,
-            'address' => $this->address,
+            'shipping_address' => $this->shipping_address,
             'items' => $this->items,
             'payments' => $this->payments
         ];
