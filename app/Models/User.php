@@ -61,4 +61,8 @@ class User extends Authenticatable
     public function addresses(): HasMany {
         return $this->hasMany(Address::class, 'userid');
     }
+
+    public function isAdmin(): bool {
+        return $this->role === 'EmployeeAdministrator';
+    }
 }
