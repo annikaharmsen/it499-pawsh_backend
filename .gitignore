@@ -11,6 +11,7 @@
 .env.deploy
 .env.debug
 .phpactor.json
+.prettierrc.json
 .phpunit.result.cache
 Homestead.json
 Homestead.yaml
