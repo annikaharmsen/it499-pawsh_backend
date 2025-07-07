@@ -12,6 +12,8 @@ use App\Http\Controllers\AddressController;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Route;
+use App\Http\Middleware\IsAdmin;
+use App\Http\Controllers\AdminDashboardController;
 
 // TEST ROUTES
 Route::post('/__reset', function () {
@@ -45,3 +47,12 @@ Route::apiResource('orders', controller: OrderController::class)->middleware('au
 Route::apiResource('addresses', controller: AddressController::class)->middleware('auth:sanctum');
 
 Route::get('stripe-return', [PaymentController::class, 'store']);
+
+Route::middleware(['auth:sanctum', IsAdmin::class])
+    ->prefix('admin/dashboard')
+    ->group(function () {
+        Route::get('overview', [AdminDashboardController::class, 'overview']);
+        Route::get('customers-report', [AdminDashboardController::class, 'usersReport']);
+        Route::get('orders-report', [AdminDashboardController::class, 'ordersReport']);
+        Route::get('products-report', [AdminDashboardController::class, 'productsReport']);
+    });
