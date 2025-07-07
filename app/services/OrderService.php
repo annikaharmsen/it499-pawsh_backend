@@ -7,7 +7,6 @@ use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\User;
 use App\services\ResponseService/* TODO: implement */;
-use App\services\RequestService/* TODO: implement */;
 use Illuminate\Http\Response;
 
 class OrderService {
@@ -21,7 +20,7 @@ class OrderService {
             'status' => 'in progress',
             'userid' => $user->id
         ]);
-        $order->save();
+        ResponseService::saveOrError($order);
 
         self::orderItemsFromCart($user, $order);
 
@@ -55,10 +54,10 @@ class OrderService {
             ResponseService::sendError('Cannot update shipping address of a sent order.', Response::HTTP_BAD_REQUEST);
         }
 
-        RequestService::updateOrError($order, ['shipping_addressid' => $address->id]);
+        ResponseService::updateOrError($order, ['shipping_addressid' => $address->id]);
 
         if (self::isPaid($order)) {
-            RequestService::updateOrError($order, ['status' => 'sent']);
+            ResponseService::updateOrError($order, ['status' => 'sent']);
         }
     }
 

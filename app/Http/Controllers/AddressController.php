@@ -60,7 +60,7 @@ class AddressController extends Controller
 
         $address = new Address($input);
         $address['userid'] = Auth::id();
-        $address->save();
+        ResponseService::saveOrError($address);
 
         return $this->respondWithOne('Address saved successfully.', $address);
     }

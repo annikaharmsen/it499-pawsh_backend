@@ -62,7 +62,7 @@ class CartItemController extends Controller
         }
 
         $cartitem->quantity += $input['quantity'];
-        $cartitem->save();
+        ResponseService::saveOrError($cartitem);
 
         return $this->respondWithOne('Product was successfully added to cart.', $cartitem);
     }

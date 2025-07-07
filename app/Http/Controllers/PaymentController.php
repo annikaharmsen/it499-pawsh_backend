@@ -59,12 +59,12 @@ class PaymentController extends Controller
                 'transaction_reference_id' => $session->payment_intent,
                 'order_id' => $order->id,
         ]);
-        $payment->save();
+        ResponseService::saveOrError($payment);
 
         if ($payment->status == 'paid') {
 
             $order->status = 'sent';
-            $order->save();
+            ResponseService::saveOrError($order);
 
             $cart_items = Auth::user()->cart_items()->get();
 

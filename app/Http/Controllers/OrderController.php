@@ -154,7 +154,7 @@ class OrderController extends Controller
                 /*'billing_addressid' => //TODO: add value or remove entirely */
                 'orderid' => $order->id
         ]);
-        $payment->save();
+        ResponseService::saveOrError($payment);
 
         $input = ResponseService::validateOrError($request, $this->updateRules, 'Invalid address ID.');
 
