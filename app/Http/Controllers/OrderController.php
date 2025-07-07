@@ -6,6 +6,8 @@ use App\Http\Resources\OrderResource;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Payment;
+use App\services\OrderService;
+use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -14,11 +16,11 @@ use Illuminate\Support\Facades\Auth;
 class OrderController extends Controller
 {
     private $storeRules = [
-        'shipping_addressid' => 'required|exists:addresses,id'
     ];
 
     private $updateRules = [
-        'status' => 'required | string'
+        'status' => 'nullable|string',
+        'shipping_addressid' => 'required|exists:addresses,id',
     ];
 
     public function respondWithOne(String $message, Order $order): JsonResponse {
@@ -40,45 +42,16 @@ class OrderController extends Controller
     }
 
     /**
-     * Store a newly created resource in storage.
+     * Create order
+     * Create stripe checkout session
      */
-    public function store(Request $request)
+    public function initialize(Request $request)
     {
-        $input = $this->validateOrError($request, $this->storeRules);
+        OrderService::initiateOrder(Auth::user());
 
-        $cartitems = Auth::user()->cartitems()->get();
+        // store payment
 
-        // check for empty cart
-        if ($cartitems->count() < 1) {
-            $this->sendError('Order cannot be placed. There are no items in cart.', Response::HTTP_BAD_REQUEST);
-        }
-
-        // create order
-        $order = new Order($input);
-        $order['status'] = 'processing';
-        $order['userid'] = Auth::id();
-        $order->save();
-
-        // convert cart items to order items
-        foreach ($cartitems as $item) {
-            OrderItem::create([
-                'orderid'   => $order->id,
-                'productid' => $item->productid,
-                'quantity'  => $item->quantity,
-                'unitprice' => intval($item->product->price) //TODO: send float once orderitems db table is corrected
-            ]);
-        }
-
-        // update order status
-        $order['status'] = 'awaiting payment';
-        $order->save();
-
-        // clear cart
-        foreach ($cartitems as $item) {
-            $item->delete();
-        }
-
-        // create checkout session
+        // CREATE CHECKOUT SESSION
         $stripe = config('app')['stripe'];
         $DOLLARS_TO_CENTS = 100;
 
@@ -107,6 +80,18 @@ class OrderController extends Controller
             ]
         ]);
 
+        if ($session->amount_total !== $order->getTotal()) {
+            $this->sendError('Error calculating total.', Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
+
+        // STORE PAYMENT
+        $payment = new Payment([
+            'amount' => $session->amount_total,
+            'status' => $session->payment_status,
+            'transaction_referenceid' => $session->payment_intent,
+            'orderid' => $order->id
+        ]);
+
         // send order and checkout session's client secret
         return $this->sendResponse('Order in progress', ['order' => new OrderResource($order), 'checkoutSessionClientSecret' => $session->client_secret]);
     }
@@ -124,11 +109,58 @@ class OrderController extends Controller
     }
 
     /**
-     * Update the specified resource in storage.
+     * Check payment status
+     * Store payment
+     * Define order shipping address
+     * Update order status
      */
     public function update(Request $request, Order $order)
     {
-        //
+        $stripe = require_once('config/app.php')['stripe'];
+
+        try {
+            $session = $stripe->checkout->sessions->retrieve($request->sessionid);
+        } catch (Exception $e) {
+            $this->sendError('Invalid session.', Response::HTTP_BAD_REQUEST);
+        }
+
+        $order = Order::whereKey($session->metadata->order_id)->first();
+
+        if ($order->userid !== Auth::id()) {
+            $this->sendError('Unauthorized.', Response::HTTP_UNAUTHORIZED);
+        }
+
+        // store payment info in pawsh db
+        $payment = new Payment([
+                'amount' => $session->amount_total,
+                'status' => $session->payment_status,
+                'transaction_referenceid' => $session->payment_intent,
+                /*'billing_addressid' => //TODO: add value or remove entirely */
+                'orderid' => $order->id
+        ]);
+        $payment->save();
+
+        $input = $this->validateOrError($request, $this->updateRules);
+
+        $this->updateOrError($order, $input['status' => ]);
+
+        // update order status
+        if ($session->payment_status == 'paid') {
+
+            $order->status = 'paid';
+            $order->save();
+
+            // remove cart_items
+            $cart_items = Auth::user()->cart_items()->get();
+
+            foreach ($cart_items as $item) {
+                $item->delete();
+            }
+
+            $this->respondWithOne('Payment received successfully. Order has been sent.', $payment);
+        } else {
+            $this->sendError('There was an issue processing the payment.', Response::HTTP_BAD_REQUEST);
+        }
     }
 
     /**
