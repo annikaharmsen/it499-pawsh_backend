@@ -2,10 +2,12 @@
 
 namespace App\services;
 
+use App\Models\Address;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\User;
 use App\services\ResponseService/* TODO: implement */;
+use App\services\RequestService/* TODO: implement */;
 use Illuminate\Http\Response;
 
 class OrderService {
@@ -16,12 +18,14 @@ class OrderService {
 
         // STORE ORDER
         $order = new Order([
-            'status' => 'checking out',
+            'status' => 'in progress',
             'userid' => $user->id
         ]);
         $order->save();
 
         self::orderItemsFromCart($user, $order);
+
+        return $order;
     }
 
     private static function requireCartItems(User $user) {
@@ -43,5 +47,32 @@ class OrderService {
                 'unitprice' => $item->product->price
             ]);
         }
+    }
+
+    public static function updateAddress(Order $order, Address $address)
+    {
+        if ($order->status !== 'in progress') {
+            ResponseService::sendError('Cannot update shipping address of a sent order.', Response::HTTP_BAD_REQUEST);
+        }
+
+        RequestService::updateOrError($order, ['shipping_addressid' => $address->id]);
+
+        if (self::isPaid($order)) {
+            RequestService::updateOrError($order, ['status' => 'sent']);
+        }
+    }
+
+    private static function getTotal(Order $order) {
+        return $order->items->reduce(function ($carry, $item) {
+            return $carry += $item->unitprice * $item->quantity;
+        });
+    }
+
+    private static function isPaid(Order $order) {
+        $orderTotal = self::getTotal($order);
+
+        $paidTotal = $order->payments->where('status', 'paid')->sum('amount');
+
+        return $orderTotal === $paidTotal;
     }
 }

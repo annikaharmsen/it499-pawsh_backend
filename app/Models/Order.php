@@ -14,12 +14,6 @@ class Order extends Model
         'shipping_addressid'
     ];
 
-    public function getTotal(): float {
-        return $this->items->reduce(function ($carry, $item) {
-            return $carry += $item->unitprice * $item->quantity;
-        });
-    }
-
     public function user(): BelongsTo {
         return $this->belongsTo(User::class, 'userid');
     }

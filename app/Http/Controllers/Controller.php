@@ -30,11 +30,11 @@ abstract class Controller
     );
     }
 
-    function validateOrError(Request $request, Array $rules) {
+    function validateOrError(Request $request, Array $rules, string $message = 'Validation Error.', int $code = Response::HTTP_BAD_REQUEST) {
         try {
             return $request->validate($rules);
         } catch (ValidationException $e) {
-            return $this->sendError('Validation Error.', Response::HTTP_BAD_REQUEST);
+            return $this->sendError($message, $code);
         }
     }
 }

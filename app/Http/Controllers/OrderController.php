@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Resources\OrderResource;
+use App\Models\Address;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Payment;
@@ -19,7 +20,6 @@ class OrderController extends Controller
     ];
 
     private $updateRules = [
-        'status' => 'nullable|string',
         'shipping_addressid' => 'required|exists:addresses,id',
     ];
 
@@ -38,7 +38,10 @@ class OrderController extends Controller
     {
         $orders = Auth::user()->orders;
 
-        return $this->respondWithMany('User\'s orders retreived successfully', $orders);
+        return $this->respondWithMany(
+            'User\'s orders retreived successfully',
+            $orders
+        );
     }
 
     /**
@@ -47,7 +50,7 @@ class OrderController extends Controller
      */
     public function initialize(Request $request)
     {
-        OrderService::initiateOrder(Auth::user());
+        $order = OrderService::initiateOrder(Auth::user());
 
         // store payment
 
@@ -58,10 +61,13 @@ class OrderController extends Controller
         // create stripe checkout session
         $line_items = [];
         foreach ($order->items as $item) {
-            $line_items[] = [
-                'price_data' => [
+            $line_items[] =
+            [
+                'price_data' =>
+                [
                   'currency' => 'usd',
-                  'product_data' => [
+                  'product_data' =>
+                  [
                     'name' => $item->product->name,
                   ],
                   'unit_amount' => (int) $item->unitprice * $DOLLARS_TO_CENTS,
@@ -80,8 +86,12 @@ class OrderController extends Controller
             ]
         ]);
 
-        if ($session->amount_total !== $order->getTotal()) {
-            $this->sendError('Error calculating total.', Response::HTTP_INTERNAL_SERVER_ERROR);
+        if ($session->amount_total !== $order->getTotal())
+        {
+            $this->sendError(
+                'Error calculating total.',
+                Response::HTTP_INTERNAL_SERVER_ERROR
+            );
         }
 
         // STORE PAYMENT
@@ -93,7 +103,13 @@ class OrderController extends Controller
         ]);
 
         // send order and checkout session's client secret
-        return $this->sendResponse('Order in progress', ['order' => new OrderResource($order), 'checkoutSessionClientSecret' => $session->client_secret]);
+        return $this->sendResponse(
+            'Order in progress',
+            [
+                'order' => new OrderResource($order),
+                'checkoutSessionClientSecret' => $session->client_secret
+                ]
+        );
     }
 
     /**
@@ -140,27 +156,13 @@ class OrderController extends Controller
         ]);
         $payment->save();
 
-        $input = $this->validateOrError($request, $this->updateRules);
+        $input = $this->validateOrError($request, $this->updateRules, 'Invalid address ID.');
 
-        $this->updateOrError($order, $input['status' => ]);
+        $address = Address::whereId($input['shipping_addressid']);
 
-        // update order status
-        if ($session->payment_status == 'paid') {
+        OrderService::updateAddress($order, $address);
 
-            $order->status = 'paid';
-            $order->save();
-
-            // remove cart_items
-            $cart_items = Auth::user()->cart_items()->get();
-
-            foreach ($cart_items as $item) {
-                $item->delete();
-            }
-
-            $this->respondWithOne('Payment received successfully. Order has been sent.', $payment);
-        } else {
-            $this->sendError('There was an issue processing the payment.', Response::HTTP_BAD_REQUEST);
-        }
+        $this->respondWithOne('Order updated successfully.', $order);
     }
 
     /**
