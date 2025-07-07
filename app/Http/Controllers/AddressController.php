@@ -56,7 +56,7 @@ class AddressController extends Controller
      */
     public function store(Request $request)
     {
-        $input = $this->validateOrError($request, $this->storeRules);
+        $input = ResponseService::validateOrError($request, $this->storeRules);
 
         $address = new Address($input);
         $address['userid'] = Auth::id();
@@ -82,7 +82,7 @@ class AddressController extends Controller
      */
     public function update(Request $request, Address $address)
     {
-        $input = $this->validateOrError($request, $this->updateRules);
+        $input = ResponseService::validateOrError($request, $this->updateRules);
 
         if ($address->userid !== Auth::id()) {
             return ResponseService::sendError('Address not found for this user.', Response::HTTP_NOT_FOUND);

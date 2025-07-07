@@ -46,7 +46,7 @@ class CartItemController extends Controller
      */
     public function store(Request $request)
     {
-        $input = $this->validateOrError($request, $this->storeRules);
+        $input = ResponseService::validateOrError($request, $this->storeRules);
 
         $cartitem = CartItem::where([
             'userid' => Auth::id(),
@@ -80,7 +80,7 @@ class CartItemController extends Controller
      */
     public function update(Request $request, CartItem $cartItem)
     {
-        $input = $this->validateOrError($request, $this->updateRules);
+        $input = ResponseService::validateOrError($request, $this->updateRules);
 
         if ($cartItem->userid !== Auth::id()) {
             return ResponseService::sendError('Item not found for this user. ' . 'Cart item user id: ' . $cartItem->userid . ', Authenticated user id: ' . Auth::id(), Response::HTTP_NOT_FOUND);

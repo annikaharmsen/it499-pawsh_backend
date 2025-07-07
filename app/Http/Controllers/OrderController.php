@@ -156,7 +156,7 @@ class OrderController extends Controller
         ]);
         $payment->save();
 
-        $input = $this->validateOrError($request, $this->updateRules, 'Invalid address ID.');
+        $input = ResponseService::validateOrError($request, $this->updateRules, 'Invalid address ID.');
 
         $address = Address::whereId($input['shipping_addressid']);
 
