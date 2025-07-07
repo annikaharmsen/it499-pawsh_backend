@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\services\OrderService;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -16,7 +17,7 @@ class OrderResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'total' => $this->getTotal(),
+            'total' => OrderService::getTotal($this),
             'date' => $this->created_at->toDateTimeString(),
             'user' => $this->user,
             'shipping_address' => $this->shipping_address,

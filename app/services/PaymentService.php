@@ -9,11 +9,14 @@ use Illuminate\Http\Response;
 
 class PaymentService {
 
+
+    private static $DOLLARS_TO_CENTS = 100;
+
     public static function initializePayment(Order $order)
     {
         $session = self::createStripeCheckoutSession($order);
 
-        if ($session->amount_total !== $order->getTotal())
+        if ($session->amount_total !== OrderService::getCentTotal($order))
         {
             ResponseService::sendError(
                 'Error calculating total.',
@@ -66,7 +69,6 @@ class PaymentService {
     private static function getLineItems(Order $order)
     {
         $line_items = [];
-        $DOLLARS_TO_CENTS = 100;
 
         foreach ($order->items as $item) {
             $line_items[] =
@@ -78,13 +80,17 @@ class PaymentService {
                   [
                     'name' => $item->product->name,
                   ],
-                  'unit_amount' => (int) $item->unitprice * $DOLLARS_TO_CENTS,
+                  'unit_amount' => self::toCents($item->unitprice),
                 ],
                 'quantity' => $item->quantity,
             ];
         }
 
         return $line_items;
+    }
+
+    public static function toCents(float $dollars) {
+        return (int) $dollars * self::$DOLLARS_TO_CENTS;
     }
 
     private static function storePayment(object $session, Order $order) {

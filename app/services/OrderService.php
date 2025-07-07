@@ -2,6 +2,7 @@
 
 namespace App\services;
 
+use App\Http\Resources\OrderResource;
 use App\Models\Address;
 use App\Models\Order;
 use App\Models\OrderItem;
@@ -10,6 +11,8 @@ use App\services\ResponseService;
 use Illuminate\Http\Response;
 
 class OrderService {
+
+    private static $DOLLARS_TO_CENTS = 100;
 
     public static function initializeOrder(User $user)
     {
@@ -62,10 +65,14 @@ class OrderService {
         }
     }
 
-    private static function getTotal(Order $order) {
+    public static function getTotal(Order|OrderResource $order) {
         return $order->items->reduce(function ($carry, $item) {
             return $carry += $item->unitprice * $item->quantity;
         });
+    }
+
+    public static function getCentTotal(Order|OrderResource $order) {
+        return (int) self::getTotal($order) * self::$DOLLARS_TO_CENTS;
     }
 
     private static function isPaid(Order $order) {
