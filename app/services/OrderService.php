@@ -11,7 +11,7 @@ use Illuminate\Http\Response;
 
 class OrderService {
 
-    public static function initiateOrder(User $user)
+    public static function initializeOrder(User $user)
     {
         self::requireCartItems($user);
 

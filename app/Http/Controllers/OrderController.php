@@ -8,6 +8,7 @@ use App\Models\Order;
 use App\Models\Payment;
 use App\services\OrderService;
 use App\services\ResponseService;
+use App\services\PaymentService;
 use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -45,69 +46,22 @@ class OrderController extends Controller
     }
 
     /**
-     * Create order
+     * Initiate order
      * Create stripe checkout session
+     * Store payment
+     *
      */
-    public function initialize(Request $request)
+    public function store(Request $request)
     {
-        $order = OrderService::initiateOrder(Auth::user());
+        $order = OrderService::initializeOrder(Auth::user());
 
-        // store payment
+        $payment_session = PaymentService::initializePayment($order);
 
-        // CREATE CHECKOUT SESSION
-        $stripe = config('app')['stripe'];
-        $DOLLARS_TO_CENTS = 100;
-
-        // create stripe checkout session
-        $line_items = [];
-        foreach ($order->items as $item) {
-            $line_items[] =
-            [
-                'price_data' =>
-                [
-                  'currency' => 'usd',
-                  'product_data' =>
-                  [
-                    'name' => $item->product->name,
-                  ],
-                  'unit_amount' => (int) $item->unitprice * $DOLLARS_TO_CENTS,
-                ],
-                'quantity' => $item->quantity,
-            ];
-        }
-
-        $session = $stripe->checkout->sessions->create([
-            'line_items' => $line_items,
-            'mode' => 'payment',
-            'ui_mode' => 'custom',
-            'return_url' => 'http://127.0.0.1:8001/stripe-return?session_id={CHECKOUT_SESSION_ID}',
-            'metadata' => [
-                'orderid' => $order->id,
-            ]
-        ]);
-
-        if ($session->amount_total !== $order->getTotal())
-        {
-            ResponseService::sendError(
-                'Error calculating total.',
-                Response::HTTP_INTERNAL_SERVER_ERROR
-            );
-        }
-
-        // STORE PAYMENT
-        $payment = new Payment([
-            'amount' => $session->amount_total,
-            'status' => $session->payment_status,
-            'transaction_referenceid' => $session->payment_intent,
-            'orderid' => $order->id
-        ]);
-
-        // send order and checkout session's client secret
         return ResponseService::sendResponse(
             'Order in progress',
             [
                 'order' => new OrderResource($order),
-                'checkoutSessionClientSecret' => $session->client_secret
+                'checkoutSessionClientSecret' => $payment_session->client_secret
                 ]
         );
     }
