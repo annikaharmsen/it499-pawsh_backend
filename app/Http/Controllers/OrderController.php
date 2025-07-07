@@ -94,7 +94,7 @@ class OrderController extends Controller
 
         $address = Address::whereId($input['shipping_addressid']);
 
-        OrderService::updateAddress($order, $address);
+        OrderService::provideShippingAddress($order, $address);
 
         $this->respondWithOne('Order updated successfully.', $order);
     }

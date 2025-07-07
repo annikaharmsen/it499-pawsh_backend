@@ -48,7 +48,7 @@ class OrderService {
         }
     }
 
-    public static function updateAddress(Order $order, Address $address)
+    public static function provideShippingAddress(Order $order, Address $address)
     {
         if ($order->status !== 'in progress') {
             ResponseService::sendError('Cannot update shipping address of a sent order.', Response::HTTP_BAD_REQUEST);
@@ -58,6 +58,7 @@ class OrderService {
 
         if (self::isPaid($order)) {
             ResponseService::updateOrError($order, ['status' => 'sent']);
+            CartService::clearCart($order->user);
         }
     }
 
