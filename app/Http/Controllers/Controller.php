@@ -21,20 +21,11 @@ abstract class Controller
         ], Response::HTTP_OK);
     }
 
-    function sendError(string $message, int $status): JsonResponse {
-        abort(
-            response()->json([
-            'success' => false,
-            'message' => $message
-        ], $status)
-    );
-    }
-
     function validateOrError(Request $request, Array $rules, string $message = 'Validation Error.', int $code = Response::HTTP_BAD_REQUEST) {
         try {
             return $request->validate($rules);
         } catch (ValidationException $e) {
-            return $this->sendError($message, $code);
+            return ResponseService::sendError($message, $code);
         }
     }
 }

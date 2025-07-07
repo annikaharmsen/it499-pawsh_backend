@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Resources\CartItemResource;
 use App\Models\CartItem;
+use App\services\ResponseService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -82,7 +83,7 @@ class CartItemController extends Controller
         $input = $this->validateOrError($request, $this->updateRules);
 
         if ($cartItem->userid !== Auth::id()) {
-            return $this->sendError('Item not found for this user. ' . 'Cart item user id: ' . $cartItem->userid . ', Authenticated user id: ' . Auth::id(), Response::HTTP_NOT_FOUND);
+            return ResponseService::sendError('Item not found for this user. ' . 'Cart item user id: ' . $cartItem->userid . ', Authenticated user id: ' . Auth::id(), Response::HTTP_NOT_FOUND);
         }
 
         $cartItem->update($input);
@@ -97,7 +98,7 @@ class CartItemController extends Controller
     {
 
         if ($cartItem->userid !== Auth::id()) {
-            return $this->sendError('Cart item not found for this user.', Response::HTTP_NOT_FOUND);
+            return ResponseService::sendError('Cart item not found for this user.', Response::HTTP_NOT_FOUND);
         }
 
         $cartItem->delete();

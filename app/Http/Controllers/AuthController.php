@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Resources\UserResource;
 use App\Models\User;
+use App\services\ResponseService;
 use Exception;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\JsonResponse;
@@ -24,7 +25,7 @@ class AuthController extends Controller
                 'password' => 'required',
             ]);
         } catch (ValidationException $e) {
-            return $this->sendError('Validation Error.', Response::HTTP_BAD_REQUEST);
+            return ResponseService::sendError('Validation Error.', Response::HTTP_BAD_REQUEST);
         }
 
         $credentials['password'] = bcrypt($credentials['password']);
@@ -33,7 +34,7 @@ class AuthController extends Controller
             $credentials['role'] = 'Customer';
             $user = User::create($credentials);
         } catch (UniqueConstraintViolationException $e) {
-            return $this->sendError('This email has already been registered.', Response::HTTP_BAD_REQUEST);
+            return ResponseService::sendError('This email has already been registered.', Response::HTTP_BAD_REQUEST);
         }
 
         $token = $user->createToken('pawsh')->plainTextToken;
@@ -49,7 +50,7 @@ class AuthController extends Controller
                 'password' => 'required'
             ]);
         } catch (ValidationException) {
-            return $this->sendError('Validation Error.', Response::HTTP_BAD_REQUEST);
+            return ResponseService::sendError('Validation Error.', Response::HTTP_BAD_REQUEST);
         }
 
         if (Auth::attempt($credentials)) {
@@ -61,14 +62,14 @@ class AuthController extends Controller
             ]);
         }
         else {
-            return $this->sendError('Invalid login details', 400);
+            return ResponseService::sendError('Invalid login details', 400);
         }
     }
 
     public function destroy(User $user) {
 
         if ($user->id !== Auth::id()) {
-            return $this->sendError('User not found.', Response::HTTP_NOT_FOUND);
+            return ResponseService::sendError('User not found.', Response::HTTP_NOT_FOUND);
         }
 
         $user->delete();

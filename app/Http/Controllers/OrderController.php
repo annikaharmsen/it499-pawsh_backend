@@ -5,9 +5,9 @@ namespace App\Http\Controllers;
 use App\Http\Resources\OrderResource;
 use App\Models\Address;
 use App\Models\Order;
-use App\Models\OrderItem;
 use App\Models\Payment;
 use App\services\OrderService;
+use App\services\ResponseService;
 use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -88,7 +88,7 @@ class OrderController extends Controller
 
         if ($session->amount_total !== $order->getTotal())
         {
-            $this->sendError(
+            ResponseService::sendError(
                 'Error calculating total.',
                 Response::HTTP_INTERNAL_SERVER_ERROR
             );
@@ -118,7 +118,7 @@ class OrderController extends Controller
     public function show(Order $order)
     {
         if ($order->userid !== Auth::id()) {
-            return $this->sendError('Order not found for this user.', Response::HTTP_NOT_FOUND);
+            return ResponseService::sendError('Order not found for this user.', Response::HTTP_NOT_FOUND);
         }
 
         return $this->respondWithOne('Order retreived successfully.', $order);
@@ -137,13 +137,13 @@ class OrderController extends Controller
         try {
             $session = $stripe->checkout->sessions->retrieve($request->sessionid);
         } catch (Exception $e) {
-            $this->sendError('Invalid session.', Response::HTTP_BAD_REQUEST);
+            ResponseService::sendError('Invalid session.', Response::HTTP_BAD_REQUEST);
         }
 
         $order = Order::whereKey($session->metadata->order_id)->first();
 
         if ($order->userid !== Auth::id()) {
-            $this->sendError('Unauthorized.', Response::HTTP_UNAUTHORIZED);
+            ResponseService::sendError('Unauthorized.', Response::HTTP_UNAUTHORIZED);
         }
 
         // store payment info in pawsh db

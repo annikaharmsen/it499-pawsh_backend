@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Resources\PaymentResource;
 use App\Models\Order;
 use App\Models\Payment;
+use App\services\ResponseService;
 use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -43,13 +44,13 @@ class PaymentController extends Controller
         try {
             $session = $stripe->checkout->sessions->retrieve($request->session_id);
         } catch (Exception $e) {
-            $this->sendError('Invalid session.', Response::HTTP_BAD_REQUEST);
+            ResponseService::sendError('Invalid session.', Response::HTTP_BAD_REQUEST);
         }
 
         $order = Order::whereKey($session->metadata->order_id)->first();
 
         if ($order->user_id !== Auth::id()) {
-            $this->sendError('Unauthorized.', Response::HTTP_UNAUTHORIZED);
+            ResponseService::sendError('Unauthorized.', Response::HTTP_UNAUTHORIZED);
         }
 
         $payment = new Payment([
@@ -73,7 +74,7 @@ class PaymentController extends Controller
 
             $this->respondWithOne('Payment received successfully. Order has been sent.', $payment);
         } else {
-            $this->sendError('There was an issue processing the payment.', Response::HTTP_BAD_REQUEST);
+            ResponseService::sendError('There was an issue processing the payment.', Response::HTTP_BAD_REQUEST);
         }
     }
 

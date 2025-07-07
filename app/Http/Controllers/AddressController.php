@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Resources\AddressResource;
 use App\Models\Address;
+use App\services\ResponseService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -70,7 +71,7 @@ class AddressController extends Controller
     public function show(Address $address)
     {
         if ($address->userid !== Auth::id()) {
-            return $this->sendError('Address not found for this user.', Response::HTTP_NOT_FOUND);
+            return ResponseService::sendError('Address not found for this user.', Response::HTTP_NOT_FOUND);
         }
 
         return $this->respondWithOne('Address retreived successfully.', $address);
@@ -84,7 +85,7 @@ class AddressController extends Controller
         $input = $this->validateOrError($request, $this->updateRules);
 
         if ($address->userid !== Auth::id()) {
-            return $this->sendError('Address not found for this user.', Response::HTTP_NOT_FOUND);
+            return ResponseService::sendError('Address not found for this user.', Response::HTTP_NOT_FOUND);
         }
 
         $address->update($request->all());
@@ -98,7 +99,7 @@ class AddressController extends Controller
     public function destroy(Address $address)
     {
         if ($address->userid !== Auth::id()) {
-            return $this->sendError('Address not found for this user.', Response::HTTP_NOT_FOUND);
+            return ResponseService::sendError('Address not found for this user.', Response::HTTP_NOT_FOUND);
         }
 
         $address->delete();
