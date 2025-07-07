@@ -24,11 +24,11 @@ class OrderController extends Controller
     ];
 
     public function respondWithOne(String $message, Order $order): JsonResponse {
-        return parent::sendResponse($message, ['order' => new OrderResource($order)]);
+        return ResponseService::sendResponse($message, ['order' => new OrderResource($order)]);
     }
 
     public function respondWithMany(String $message, mixed $orders): JsonResponse {
-        return parent::sendResponse($message, ['orders' => OrderResource::collection($orders)]);
+        return ResponseService::sendResponse($message, ['orders' => OrderResource::collection($orders)]);
     }
 
     /**
@@ -103,7 +103,7 @@ class OrderController extends Controller
         ]);
 
         // send order and checkout session's client secret
-        return $this->sendResponse(
+        return ResponseService::sendResponse(
             'Order in progress',
             [
                 'order' => new OrderResource($order),

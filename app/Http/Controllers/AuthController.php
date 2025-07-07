@@ -39,7 +39,7 @@ class AuthController extends Controller
 
         $token = $user->createToken('pawsh')->plainTextToken;
 
-        return $this->sendResponse('User registered successfully.', ['token' => $token, 'user' => new UserResource($user)]);
+        return ResponseService::sendResponse('User registered successfully.', ['token' => $token, 'user' => new UserResource($user)]);
     }
 
     public function login(Request $request): JsonResponse
@@ -56,7 +56,7 @@ class AuthController extends Controller
         if (Auth::attempt($credentials)) {
             $token = Auth::user()->createToken('pawsh')->plainTextToken;
 
-            return $this->sendResponse('Login Successful', [
+            return ResponseService::sendResponse('Login Successful', [
                 'user' => new UserResource(Auth::user()),
                 'token' => $token
             ]);
@@ -74,6 +74,6 @@ class AuthController extends Controller
 
         $user->delete();
 
-        return $this->sendResponse('Account deleted successfully.', ['user' => new UserResource($user)]);
+        return ResponseService::sendResponse('Account deleted successfully.', ['user' => new UserResource($user)]);
     }
 }

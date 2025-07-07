@@ -21,11 +21,11 @@ class ProductController extends Controller
     ];
 
     public function respondWithOne(String $message, Product $product): JsonResponse {
-        return parent::sendResponse($message, ['product' => new ProductResource($product)]);
+        return ResponseService::sendResponse($message, ['product' => new ProductResource($product)]);
     }
 
     public function respondWithMany(String $message, mixed $products): JsonResponse {
-        return parent::sendResponse($message, ['products' => ProductResource::collection($products)]);
+        return ResponseService::sendResponse($message, ['products' => ProductResource::collection($products)]);
     }
 
     /**

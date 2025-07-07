@@ -34,11 +34,11 @@ class AddressController extends Controller
     ];
 
     public function respondWithOne(String $message, Address $address): JsonResponse {
-        return parent::sendResponse($message, ['address' => new AddressResource($address)]);
+        return ResponseService::sendResponse($message, ['address' => new AddressResource($address)]);
     }
 
     public function respondWithMany(String $message, mixed $addresses): JsonResponse {
-        return parent::sendResponse($message, ['addresses' => AddressResource::collection($addresses)]);
+        return ResponseService::sendResponse($message, ['addresses' => AddressResource::collection($addresses)]);
     }
 
     /**
@@ -104,6 +104,6 @@ class AddressController extends Controller
 
         $address->delete();
 
-        return $this->sendResponse('Address deleted successfully.');
+        return ResponseService::sendResponse('Address deleted successfully.');
     }
 }

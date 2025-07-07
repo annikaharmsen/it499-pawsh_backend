@@ -15,7 +15,7 @@ use Illuminate\Support\Facades\Auth;
 class PaymentController extends Controller
 {
     public function respondWithOne(String $message, Payment $payment): JsonResponse {
-        return parent::sendResponse($message, ['payment' => new PaymentResource($payment)]);
+        return ResponseService::sendResponse($message, ['payment' => new PaymentResource($payment)]);
     }
 
     /**

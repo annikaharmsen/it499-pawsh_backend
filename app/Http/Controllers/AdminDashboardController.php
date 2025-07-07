@@ -35,7 +35,7 @@ class AdminDashboardController extends Controller
         $productService = $this->productAdminService;
 
 
-        return $this->sendResponse('Stats retrieved successfully.', [
+        return ResponseService::sendResponse('Stats retrieved successfully.', [
             'total_orders' => $ordersService->ordersCount(),
             'today_orders' => $this->orderAdminService->todayOrders(),
             'pending_orders' => $ordersService->pendingOrdersCount(),
@@ -51,7 +51,7 @@ class AdminDashboardController extends Controller
 
     public function ordersReport(): JsonResponse
     {
-        return $this->sendResponse('Order\'s Stats retrieved successfully.', [
+        return ResponseService::sendResponse('Order\'s Stats retrieved successfully.', [
             'orders_count_by_status' => $this->orderAdminService->ordersCountByStatus(),
             'awaiting_shipment' => $this->orderAdminService->awaitingShipment(),
         ]);
@@ -59,7 +59,7 @@ class AdminDashboardController extends Controller
 
     public function productsReport(Request $request): JsonResponse
     {
-        return $this->sendResponse('Stats retrieved successfully.', [
+        return ResponseService::sendResponse('Stats retrieved successfully.', [
             'top_ten_sold_products' => $this->productAdminService->topTenSoldProducts(),
             'low_stock_products' => $this->productAdminService->lowStockProduct()
         ]);
@@ -67,7 +67,7 @@ class AdminDashboardController extends Controller
 
     public function usersReport(): JsonResponse
     {
-        return $this->sendResponse('Stats retrieved successfully.', [
+        return ResponseService::sendResponse('Stats retrieved successfully.', [
             'top_ten_buyers' => $this->userAdminService->topTepBuyers(),
             'users_count_by_state' => $this->userAdminService->usersCountByState()
         ]);

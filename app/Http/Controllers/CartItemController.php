@@ -22,11 +22,11 @@ class CartItemController extends Controller
     ];
 
     public function respondWithOne(String $message, CartItem $cartitem): JsonResponse {
-        return parent::sendResponse($message, ['cartitem' => new CartItemResource($cartitem)]);
+        return ResponseService::sendResponse($message, ['cartitem' => new CartItemResource($cartitem)]);
     }
 
     public function respondWithMany(String $message, mixed $cartitems): JsonResponse {
-        return parent::sendResponse($message, ['cartitems' => CartItemResource::collection($cartitems)]);
+        return ResponseService::sendResponse($message, ['cartitems' => CartItemResource::collection($cartitems)]);
     }
 
     /**
