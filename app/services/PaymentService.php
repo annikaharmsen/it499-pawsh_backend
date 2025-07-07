@@ -4,6 +4,7 @@ namespace App\services;
 
 use App\Models\Order;
 use App\Models\Payment;
+use Exception;
 use Illuminate\Http\Response;
 
 class PaymentService {
@@ -21,6 +22,20 @@ class PaymentService {
         }
 
         self::storePayment($session, $order);
+
+        return $session;
+    }
+
+    //TODO: check necessity
+    public static function retreiveStripeCheckoutSession($session_id)
+    {
+        $stripe = require_once('config/app.php')['stripe'];
+
+        try {
+            $session = $stripe->checkout->sessions->retrieve($session_id);
+        } catch (Exception $e) {
+            ResponseService::sendError('Invalid payment session.', Response::HTTP_BAD_REQUEST);
+        }
 
         return $session;
     }

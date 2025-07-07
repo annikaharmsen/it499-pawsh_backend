@@ -86,29 +86,9 @@ class OrderController extends Controller
      */
     public function update(Request $request, Order $order)
     {
-        $stripe = require_once('config/app.php')['stripe'];
-
-        try {
-            $session = $stripe->checkout->sessions->retrieve($request->sessionid);
-        } catch (Exception $e) {
-            ResponseService::sendError('Invalid session.', Response::HTTP_BAD_REQUEST);
-        }
-
-        $order = Order::whereKey($session->metadata->order_id)->first();
-
         if ($order->userid !== Auth::id()) {
             ResponseService::sendError('Unauthorized.', Response::HTTP_UNAUTHORIZED);
         }
-
-        // store payment info in pawsh db
-        $payment = new Payment([
-                'amount' => $session->amount_total,
-                'status' => $session->payment_status,
-                'transaction_referenceid' => $session->payment_intent,
-                /*'billing_addressid' => //TODO: add value or remove entirely */
-                'orderid' => $order->id
-        ]);
-        ResponseService::saveOrError($payment);
 
         $input = ResponseService::validateOrError($request, $this->updateRules, 'Invalid address ID.');
 
