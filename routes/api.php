@@ -1,13 +1,10 @@
 <?php
 
 use App\Http\Controllers\AuthController;
-use App\Http\Controllers\UserController;
 use App\Http\Controllers\CartItemController;
 use App\Http\Controllers\ProductController;
-use App\Http\Controllers\OrderItemController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\OrderController;
-use App\Http\Controllers\PaymentMethodController;
 use App\Http\Controllers\AddressController;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Artisan;
