@@ -11,9 +11,9 @@ class Payment extends Model
     protected $fillable = [
         'amount',
         'status',
-        'transaction_reference_id',
-        'order_id',
-        'payment_method_id'
+        'transaction_referenceid',
+        'orderid',
+        'payment_methodid'
     ];
 
     public function order(): BelongsTo {

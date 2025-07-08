@@ -92,11 +92,11 @@ class OrderController extends Controller
 
         $input = ResponseService::validateOrError($request, $this->updateRules, 'Invalid address ID.');
 
-        $address = Address::whereId($input['shipping_addressid']);
+        $address = Address::whereId($input['shipping_addressid'])->first();
 
         OrderService::provideShippingAddress($order, $address);
 
-        $this->respondWithOne('Order updated successfully.', $order);
+        return $this->respondWithOne('Order updated successfully.', $order);
     }
 
     /**

@@ -18,7 +18,8 @@ class OrderResource extends JsonResource
         return [
             'id' => $this->id,
             'total' => OrderService::getTotal($this),
-            'date' => $this->created_at->toDateTimeString(),
+            'orderdate' => $this->orderdate,
+            'status' => $this->status,
             'user' => $this->user,
             'shipping_address' => $this->shipping_address,
             'items' => $this->items,

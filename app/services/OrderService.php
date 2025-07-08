@@ -54,7 +54,11 @@ class OrderService {
     public static function provideShippingAddress(Order $order, Address $address)
     {
         if ($order->status !== 'in progress') {
-            ResponseService::sendError('Cannot update shipping address of a sent order.', Response::HTTP_BAD_REQUEST);
+            ResponseService::sendError('Cannot update shipping address of a sent order.');
+        }
+
+        if ($order->user->id !== $address->user->id) {
+            ResponseService::sendError('Cannot use this address for this order.');
         }
 
         ResponseService::updateOrError($order, ['shipping_addressid' => $address->id]);
@@ -76,10 +80,10 @@ class OrderService {
     }
 
     private static function isPaid(Order $order) {
-        $orderTotal = self::getTotal($order);
+        $orderTotal = self::getCentTotal($order);
 
         $paidTotal = $order->payments->where('status', 'paid')->sum('amount');
 
-        return $orderTotal === $paidTotal;
+        return $orderTotal == $paidTotal;
     }
 }

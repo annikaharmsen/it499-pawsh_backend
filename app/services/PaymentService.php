@@ -61,8 +61,6 @@ class PaymentService {
             ]
         ]);
 
-        self::storePayment($session, $order);
-
         return $session;
     }
 
@@ -93,11 +91,11 @@ class PaymentService {
         return (int) $dollars * self::$DOLLARS_TO_CENTS;
     }
 
-    private static function storePayment(object $session, Order $order) {
+    private static function storePayment(object $session, Order $order)
+    {
         $payment = new Payment([
             'amount' => $session->amount_total,
             'status' => $session->payment_status,
-            'transaction_referenceid' => $session->payment_intent,
             'orderid' => $order->id
         ]);
 
