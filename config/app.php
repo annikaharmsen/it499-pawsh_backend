@@ -2,7 +2,10 @@
 
 return [
 
-    'stripe' => new \Stripe\StripeClient(env('STRIPE_API_KEY')),
+    'stripe_api_key' => env('STRIPE_API_KEY'),
+
+    'stripe_endpoint_secret' => env('STRIPE_ENDPOINT_SECRET'),
+
 
     /*
     |--------------------------------------------------------------------------

@@ -21,7 +21,7 @@ class StripeService extends PaymentService {
     {
         $line_items = self::getLineItems($order);
 
-        $session = config('app.stripe_client')->checkout->sessions->create([
+        $session = $this->client->checkout->sessions->create([
             'line_items' => $line_items,
             'mode' => 'payment',
             'ui_mode' => 'custom',
