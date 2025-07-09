@@ -5,6 +5,9 @@ namespace App\services;
 use App\Models\Order;
 use Exception;
 use Illuminate\Http\Response;
+use Stripe\Event;
+use Stripe\PaymentIntent;
+use Stripe\Stripe;
 use Stripe\StripeClient;
 
 class StripeService extends PaymentService {
@@ -13,7 +16,7 @@ class StripeService extends PaymentService {
     protected StripeClient $client;
 
     public function __construct() {
-
+        Stripe::setApiKey(config('app.stripe_api_key'));
         $this->client = new StripeClient(config('app.stripe_api_key'));
     }
 
@@ -26,16 +29,17 @@ class StripeService extends PaymentService {
             'mode' => 'payment',
             'ui_mode' => 'custom',
             'return_url' => route('payment.store') . '/{CHECKOUT_SESSION_ID}',
-            'metadata' => [
-                'orderid' => $order->id,
+            'payment_intent_data' => [
+                'metadata' => [
+                    'orderid' => $order->id,
+                ]
             ]
         ]);
 
         return $session;
     }
 
-    //TODO: check necessity
-    public function retrieveStripeCheckoutSession($session_id)
+    public function retrieveStripeCheckoutSession(string $session_id)
     {
         try {
             $session = $this->client->checkout->sessions->retrieve($session_id);
@@ -44,6 +48,14 @@ class StripeService extends PaymentService {
         }
 
         return $session;
+    }
+
+    public function retrievePaymentIntent(string $payment_intent_id) {
+        return PaymentIntent::retrieve($payment_intent_id);
+    }
+
+    public function constructEvent(array $values) {
+        return Event::constructFrom($values, true);
     }
 
     private static function getLineItems(Order $order)

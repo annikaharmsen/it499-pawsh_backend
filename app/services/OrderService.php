@@ -63,9 +63,16 @@ class OrderService {
 
         ResponseService::updateOrError($order, ['shipping_addressid' => $address->id]);
 
+    }
+
+    public static function trySend(Order $order)
+    {
         if (self::isPaid($order)) {
-            ResponseService::updateOrError($order, ['status' => 'sent']);
-            CartService::clearCart($order->user);
+            if($order->address !== null)
+            {
+                ResponseService::updateOrError($order, ['status' => 'sent']);
+                CartService::clearCart($order->user);
+            }
         }
     }
 
@@ -84,6 +91,13 @@ class OrderService {
 
         $paidTotal = $order->payments->where('status', 'paid')->sum('amount');
 
-        return $orderTotal == $paidTotal;
+        $isPaid = $orderTotal == $paidTotal;
+
+        if ($isPaid && $order->status == 'in progress')
+        {
+            ResponseService::updateOrError($order, ['status' => 'paid']);
+        }
+
+        return $isPaid;
     }
 }

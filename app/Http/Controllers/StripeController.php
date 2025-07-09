@@ -2,14 +2,14 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Payment;
+use App\services\PaymentService;
 use App\services\ResponseService;
 use App\services\StripeService;
 use Error;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
-use Stripe\StripeClient;
+use UnexpectedValueException;
 
 class StripeController extends Controller
 {
@@ -38,6 +38,39 @@ class StripeController extends Controller
      */
     public function processPostPaymentEvent(Request $request)
     {
+        $stripe_service = new StripeService();
 
+        try {
+            $event = $stripe_service->constructEvent(
+              $request->toArray()
+            );
+          } catch(UnexpectedValueException $e) {
+            ResponseService::sendError('Webhook error while parsing basic request.');
+          }
+
+
+        switch ($event->type)
+        {
+            case 'payment_intent.succeeded':
+                $payment_intent = $event->data->object;
+                PaymentService::storePayment($payment_intent);
+                break;
+
+            case 'checkout.session.async_payment_succeeded':
+                $session = $event->data->object;
+                $payment_intent = $stripe_service->retrievePaymentIntent($session->payment_intent);
+                PaymentService::storePayment($payment_intent);
+                break;
+
+            case 'checkout.session.async_payment_failed':
+                error_log('Payment failed.');
+                break;
+
+            default:
+                // Unexpected event type
+                error_log('Received unknown event type: ' . $event->type);
+        }
+
+        http_response_code(200);
     }
 }
