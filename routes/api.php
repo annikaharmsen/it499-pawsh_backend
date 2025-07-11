@@ -11,9 +11,9 @@ use App\Http\Middleware\IsAdmin;
 use App\Http\Controllers\AdminDashboardController;
 use App\Http\Controllers\CheckoutController;
 
-Route::post('test', function() {
-    dd(route('checkout.stripe-webhook'));
-});
+// Route::post('test', function() {
+//     //
+// });
 
 // PUBLIC ROUTES
 

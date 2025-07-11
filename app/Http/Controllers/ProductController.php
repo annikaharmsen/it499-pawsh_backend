@@ -10,16 +10,6 @@ use Illuminate\Http\Request;
 
 class ProductController extends Controller
 {
-    private $storeRules = [
-        'title' => 'required | string | max:120',
-        'description' => 'required | string | max:500',
-        'price' => 'required | float'
-    ];
-    private $updateRules = [
-        'title' => 'nullable | string | max:120',
-        'description' => 'nullable | string | max:500',
-        'price' => 'nullable | float'
-    ];
 
     public function respondWithOne(String $message, Product $product): JsonResponse {
         return ResponseService::sendResponse($message, ['product' => new ProductResource($product)]);
@@ -35,14 +25,6 @@ class ProductController extends Controller
     public function index()
     {
         return $this->respondWithMany('Products retreived successfully', Product::all());
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-        //
     }
 
     /**
