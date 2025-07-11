@@ -41,7 +41,7 @@ class OrderService {
     }
 
     private static function orderItemsFromCart(User $user, Order $order) {
-        foreach ($user->cartitems as $item) {
+        foreach (self::requireCartItems($user) as $item) {
             OrderItem::create([
                 'orderid'   => $order->id,
                 'productid' => $item->productid,
@@ -51,29 +51,19 @@ class OrderService {
         }
     }
 
-    public static function provideShippingAddress(Order $order, Address $address)
+    public static function updateShippingAddress(Order $order, Address $address)
     {
-        if ($order->status !== 'in progress') {
-            ResponseService::sendError('Cannot update shipping address of a sent order.');
+        if ($order->status !== 'processing') {
+            ResponseService::sendError('Cannot update shipping address of this order.');
         }
 
-        if ($order->user->id !== $address->user->id) {
-            ResponseService::sendError('Cannot use this address for this order.');
-        }
-
-        ResponseService::updateOrError($order, ['shipping_addressid' => $address->id]);
+        ResponseService::updateOrError($order, ['shipping_addressid' => $address->id, 'status' => 'awaiting payment']);
 
     }
 
-    public static function trySend(Order $order)
+    public static function placeOrder(Order $order)
     {
-        if (self::isPaid($order)) {
-            if($order->address !== null)
-            {
-                ResponseService::updateOrError($order, ['status' => 'sent']);
-                CartService::clearCart($order->user);
-            }
-        }
+        ResponseService::updateOrError($order, ['status' => 'paid']);
     }
 
     public static function getTotal(Order|OrderResource $order) {
@@ -86,18 +76,11 @@ class OrderService {
         return (int) self::getTotal($order) * self::$DOLLARS_TO_CENTS;
     }
 
-    private static function isPaid(Order $order) {
+    public static function isPaid(Order $order) {
         $orderTotal = self::getCentTotal($order);
 
         $paidTotal = $order->payments->where('status', 'paid')->sum('amount');
 
-        $isPaid = $orderTotal == $paidTotal;
-
-        if ($isPaid && $order->status == 'in progress')
-        {
-            ResponseService::updateOrError($order, ['status' => 'paid']);
-        }
-
-        return $isPaid;
+        return $orderTotal >= $paidTotal;
     }
 }

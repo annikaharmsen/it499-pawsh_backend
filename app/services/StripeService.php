@@ -20,15 +20,20 @@ class StripeService extends PaymentService {
         $this->client = new StripeClient(config('app.stripe_api_key'));
     }
 
-    public function createStripeCheckoutSession(Order $order)
+    public function createCheckoutSession(Order $order)
     {
+
+        if ($order->status !== 'awaiting payment') {
+            ResponseService::sendError('Cannot create a checkout session for this order at this time.');
+        }
+
         $line_items = self::getLineItems($order);
 
         $session = $this->client->checkout->sessions->create([
             'line_items' => $line_items,
             'mode' => 'payment',
             'ui_mode' => 'custom',
-            'return_url' => route('payment.store') . '/{CHECKOUT_SESSION_ID}',
+            'return_url' => route('checkout.status') . '/{CHECKOUT_SESSION_ID}',
             'payment_intent_data' => [
                 'metadata' => [
                     'orderid' => $order->id,
@@ -55,7 +60,7 @@ class StripeService extends PaymentService {
     }
 
     public function constructEvent(array $values) {
-        return Event::constructFrom($values, true);
+        return Event::constructFrom($values);
     }
 
     private static function getLineItems(Order $order)

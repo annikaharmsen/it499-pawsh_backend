@@ -3,13 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Http\Resources\OrderResource;
-use App\Models\Address;
 use App\Models\Order;
-use App\Models\Payment;
 use App\services\OrderService;
 use App\services\ResponseService;
-use App\services\PaymentService;
-use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -21,7 +17,6 @@ class OrderController extends Controller
     ];
 
     private $updateRules = [
-        'shipping_addressid' => 'required|exists:addresses,id',
     ];
 
     public function respondWithOne(String $message, Order $order): JsonResponse {
@@ -55,15 +50,7 @@ class OrderController extends Controller
     {
         $order = OrderService::initializeOrder(Auth::user());
 
-        $payment_session = PaymentService::initializePayment($order);
-
-        return ResponseService::sendResponse(
-            'Order in progress',
-            [
-                'order' => new OrderResource($order),
-                'checkoutSessionClientSecret' => $payment_session->client_secret
-                ]
-        );
+        $this->respondWithOne('Order created successfully.', $order);
     }
 
     /**
@@ -86,17 +73,7 @@ class OrderController extends Controller
      */
     public function update(Request $request, Order $order)
     {
-        if ($order->userid !== Auth::id()) {
-            ResponseService::sendError('Unauthorized.', Response::HTTP_UNAUTHORIZED);
-        }
-
-        $input = ResponseService::validateOrError($request, $this->updateRules, 'Invalid address ID.');
-
-        $address = Address::whereId($input['shipping_addressid'])->first();
-
-        OrderService::provideShippingAddress($order, $address);
-
-        return $this->respondWithOne('Order updated successfully.', $order);
+        //
     }
 
     /**

@@ -17,10 +17,6 @@ class Payment extends Model
     ];
 
     public function order(): BelongsTo {
-        return $this->belongsTo(Order::class);
-    }
-
-    public function method(): HasOne {
-        return $this->hasOne(PaymentMethod::class);
+        return $this->belongsTo(Order::class, 'orderid');
     }
 }

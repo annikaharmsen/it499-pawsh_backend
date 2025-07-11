@@ -3,24 +3,16 @@
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CartItemController;
 use App\Http\Controllers\ProductController;
-use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\StripeController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\AddressController;
-use Illuminate\Support\Facades\App;
-use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Route;
 use App\Http\Middleware\IsAdmin;
 use App\Http\Controllers\AdminDashboardController;
+use App\Http\Controllers\CheckoutController;
 
-// TEST ROUTES
-Route::post('/__reset', function () {
-    if (!App::environment('local', 'testing')) {
-        abort(403, 'Unauthorized.');
-    }
-
-    Artisan::call('migrate:fresh --seed');
-
-    return response()->json(['message' => 'Database reset.']);
+Route::post('test', function() {
+    dd(route('checkout.stripe-webhook'));
 });
 
 // PUBLIC ROUTES
@@ -35,15 +27,25 @@ Route::apiResource('products', controller: ProductController::class)->only([
     'index', 'show'
 ]);
 
-Route::apiResource('payment', controller: PaymentController::class)->middleware('auth:sanctum');
+Route::controller(CheckoutController::class)
+->middleware('auth:sanctum')
+->prefix('checkout')
+->name('checkout.')
+->group(function() {
+    Route::post('/shipping/{order}', 'shippingAddress')->name('shipping');
+    Route::post('/session/{order}', 'session')->name('session');
+    Route::get('/status', 'status')->name('status');
+    Route::post('/stripe-webhook', 'processSessionEvents')
+        ->withoutMiddleware('auth:sanctum')->name('stripe-webhook');
+});
+
+
 
 Route::apiResource('orders', controller: OrderController::class)->middleware('auth:sanctum');
 
 //Route::apiResource('payment_method', controller: PaymentMethodController::class)->middleware('auth:sanctum');
 
 Route::apiResource('addresses', controller: AddressController::class)->middleware('auth:sanctum');
-
-Route::get('stripe-return', [PaymentController::class, 'store']);
 
 Route::middleware(['auth:sanctum', IsAdmin::class])
     ->prefix('admin/dashboard')

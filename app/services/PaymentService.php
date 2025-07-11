@@ -4,21 +4,38 @@ namespace App\services;
 
 use App\Models\Order;
 use App\Models\Payment;
-use Stripe\PaymentIntent;
+use Illuminate\Support\Facades\Log;
+use Stripe\Checkout\Session;
 
 class PaymentService {
 
-    public static function storePayment(PaymentIntent $payment_intent)
+    private static $CENTS_TO_DOLLARS = .01;
+
+    public static function storePayment(Session $checkout_session)
     {
-        $payment = new Payment([
-            'amount' => $payment_intent->amount,
-            'status' => $payment_intent->status,
-            'orderid' => $payment_intent->metadata->orderid,
-            'transaction_referenceid' => $payment_intent->id
-        ]);
+        $status = new StripeService()->retrievePaymentIntent($checkout_session->payment_intent)->status;
+
+        if (in_array($status, [
+            'requires_payment_method',
+            'requires_confirmation',
+            'requires_action',
+            'requires_capture'
+            ]))
+        {
+            $status = 'awaiting requirements';
+        }
+
+        $payment = Payment::updateOrCreate(
+            ['transaction_referenceid' => $checkout_session->payment_intent],
+            [
+                'amount' => (float) $checkout_session->amount_total * self::$CENTS_TO_DOLLARS,
+                'status' => $status,
+                'orderid' => $checkout_session->metadata->orderid
+            ]
+            );
 
         ResponseService::saveOrError($payment);
 
-        OrderService::trySend($payment->order);
+        return $payment;
     }
 }
