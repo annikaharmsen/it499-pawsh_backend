@@ -9,6 +9,7 @@ use App\Models\OrderItem;
 use App\Models\User;
 use App\services\ResponseService;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Log;
 
 class OrderService {
 
@@ -77,10 +78,14 @@ class OrderService {
     }
 
     public static function isPaid(Order $order) {
-        $orderTotal = self::getCentTotal($order);
+        $orderTotal = self::getTotal($order);
 
-        $paidTotal = $order->payments->where('status', 'paid')->sum('amount');
+        $paidTotal = $order->payments->where('status', 'succeeded')->sum('amount');
 
-        return $orderTotal >= $paidTotal;
+        $isPaid = $orderTotal <= $paidTotal;
+
+        Log::info('order ' . $order->id . ($isPaid ? 'is paid': ('is not paid' . $orderTotal . '>' . $paidTotal) ) );
+
+        return $isPaid;
     }
 }

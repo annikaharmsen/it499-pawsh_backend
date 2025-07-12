@@ -82,16 +82,21 @@ class CheckoutController extends Controller
             ResponseService::sendError('Webhook error while parsing basic request.');
         }
 
-        Log::info('Reveived event: ' . $event->type);
+        Log::info($event->type . ': ' . (bool) in_array($event->type, ['payment_intent.succeeded', 'payment_intent.failed']));
 
-
-        if (in_array($event->type, ['checkout.session.completed', 'checkout.session.async_payment_succeeded', 'checkout.session.async_payment_failed']))
+        if (in_array($event->type, ['payment_intent.succeeded', 'payment_intent.failed']))
         {
-            $session = $event->data->object;
-            $payment = PaymentService::storePayment($session);
+            Log::info('Reveived event: ' . $event->type);
 
-            if ($event->type === 'checkout.session.completed' && OrderService::isPaid($payment->order)) {
+            $payment_intent = $event->data->object;
+            $payment = PaymentService::storePayment($payment_intent);
+
+            Log::info('stored payment: ' . $payment);
+
+            if ($payment->status === 'succeeded' && OrderService::isPaid($payment->order)) {
                 self::completeCheckout($payment->order);
+                Log::info('order status: ' . $payment->order->status);
+                Log::info('cart items: ' . $payment->order->user->cartitems);
             }
         }
         else {

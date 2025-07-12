@@ -6,14 +6,15 @@ use App\Models\Order;
 use App\Models\Payment;
 use Illuminate\Support\Facades\Log;
 use Stripe\Checkout\Session;
+use Stripe\PaymentIntent;
 
 class PaymentService {
 
     private static $CENTS_TO_DOLLARS = .01;
 
-    public static function storePayment(Session $checkout_session)
+    public static function storePayment(PaymentIntent $payment_intent)
     {
-        $status = new StripeService()->retrievePaymentIntent($checkout_session->payment_intent)->status;
+        $status = $payment_intent->status;
 
         if (in_array($status, [
             'requires_payment_method',
@@ -26,11 +27,11 @@ class PaymentService {
         }
 
         $payment = Payment::updateOrCreate(
-            ['transaction_referenceid' => $checkout_session->payment_intent],
+            ['transaction_referenceid' => $payment_intent->id],
             [
-                'amount' => (float) $checkout_session->amount_total * self::$CENTS_TO_DOLLARS,
+                'amount' => (float) $payment_intent->amount * self::$CENTS_TO_DOLLARS,
                 'status' => $status,
-                'orderid' => $checkout_session->metadata->orderid
+                'orderid' => $payment_intent->metadata->orderid
             ]
             );
 
