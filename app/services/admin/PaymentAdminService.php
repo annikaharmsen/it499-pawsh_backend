@@ -12,14 +12,14 @@ class PaymentAdminService
         return Payment::whereBetween('paymentdate', [
             now()->startOfMonth(),
             now()
-        ])->where('status', 'paid')->sum('amount');
+        ])->where('status', 'succeeded')->sum('amount');
     }
     public function previousMonthlyRevenue(): float
     {
         return Payment::whereBetween('paymentdate', [
             now()->copy()->subMonthNoOverflow()->startOfMonth(),
             now()->copy()->subMonthNoOverflow()->endOfMonth()
-        ])->where('status', 'paid')->sum('amount');
+        ])->where('status', 'succeeded')->sum('amount');
     }
 
 }

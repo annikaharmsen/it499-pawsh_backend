@@ -14,9 +14,9 @@ class OrderAdminService
     {
         return Order::count();
     }
-    public function pendingOrdersCount(): int
+    public function processingOrdersCount(): int
     {
-        return Order::where('status', 'Pending')->count();
+        return Order::where('status', 'processing')->count();
     }
 
     public function ordersCountByStatus(): array
@@ -36,7 +36,7 @@ class OrderAdminService
 
     public function awaitingShipment(): array
     {
-        return Order::whereIn('status', ['Pending', 'Processing'])
+        return Order::where('status', 'processing')
             ->select('id', 'orderdate', 'status')
             ->get()
             ->toarray();

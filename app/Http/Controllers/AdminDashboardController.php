@@ -1,5 +1,6 @@
 <?php
 namespace App\Http\Controllers;
+use App\services\ResponseService;
 use App\services\admin\PaymentAdminService;
 use App\services\admin\ProductAdminService;
 use App\services\admin\UserAdminService;
@@ -38,7 +39,7 @@ class AdminDashboardController extends Controller
         return ResponseService::sendResponse('Stats retrieved successfully.', [
             'total_orders' => $ordersService->ordersCount(),
             'today_orders' => $this->orderAdminService->todayOrders(),
-            'pending_orders' => $ordersService->pendingOrdersCount(),
+            'processing_orders' => $ordersService->processingOrdersCount(),
             'monthly_revenue' => $paymentService->monthlyRevenue(),
             'last_month_revenue' => $paymentService->previousMonthlyRevenue(),
             'total_users' => $userService->usersCount(),
