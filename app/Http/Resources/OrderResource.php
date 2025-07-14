@@ -22,8 +22,8 @@ class OrderResource extends JsonResource
             'status' => $this->status,
             'user' => $this->user,
             'shipping_address' => $this->shipping_address,
-            'items' => $this->items,
-            'payments' => $this->payments
+            'payments' => $this->payments,
+            'items' => OrderItemResource::collection($this->items)
         ];
     }
 }

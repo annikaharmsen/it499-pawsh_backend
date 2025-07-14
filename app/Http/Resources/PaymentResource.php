@@ -19,7 +19,7 @@ class PaymentResource extends JsonResource
             'amount' => $this->amount,
             'date' => $this->created_at->toDateTimeString(),
             'status' => $this->status,
-            'order' => $this->order,
+            'orderid' => $this->orderid,
             'method' => $this->method
         ];
     }
