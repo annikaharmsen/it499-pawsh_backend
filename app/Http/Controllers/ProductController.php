@@ -24,7 +24,9 @@ class ProductController extends Controller
      */
     public function index()
     {
-        return $this->respondWithMany('Products retreived successfully', Product::all());
+        $products = Product::all()->sortBy('created_at')->reverse();
+
+        return $this->respondWithMany('Products retreived successfully', $products);
     }
 
     /**

@@ -46,7 +46,7 @@ class AddressController extends Controller
      */
     public function index()
     {
-        $addresses = Auth::user()->addresses;
+        $addresses = Auth::user()->addresses->sortBy('updated_at')->reverse();
 
         return $this->respondWithMany('User\'s addresses retreived successfully', $addresses);
     }
