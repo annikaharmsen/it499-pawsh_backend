@@ -33,7 +33,7 @@ class StripeService extends PaymentService {
             'line_items' => $line_items,
             'mode' => 'payment',
             'ui_mode' => 'custom',
-            'return_url' => route('checkout.status') . '/{CHECKOUT_SESSION_ID}',
+            'return_url' => config('app.url') . '/checkout/status/{CHECKOUT_SESSION_ID}',
             'payment_intent_data' => [
                 'metadata' => [
                     'orderid' => $order->id,
@@ -49,7 +49,7 @@ class StripeService extends PaymentService {
         try {
             $session = $this->client->checkout->sessions->retrieve($session_id);
         } catch (Exception $e) {
-            ResponseService::sendError('Invalid payment session.', Response::HTTP_BAD_REQUEST);
+            ResponseService::sendError($e->getMessage(), Response::HTTP_BAD_REQUEST);
         }
 
         return $session;

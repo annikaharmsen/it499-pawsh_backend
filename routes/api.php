@@ -21,29 +21,33 @@ Route::post('register', [AuthController::class, 'register']);
 Route::post('login', [AuthController::class, 'login']);
 Route::delete('delete-account/{user}', [AuthController::class, 'destroy'])->middleware('auth:sanctum');
 
-Route::apiResource('cart', controller: CartItemController::class)->parameters(['cart' => 'cartItem'])->middleware('auth:sanctum');
+Route::apiResource('cart', controller: CartItemController::class)
+->parameters(['cart' => 'cartItem',])
+->middleware('auth:sanctum');
 
 Route::apiResource('products', controller: ProductController::class)->only([
     'index', 'show'
 ]);
 
 Route::controller(CheckoutController::class)
-->middleware('auth:sanctum')
 ->prefix('checkout')
 ->name('checkout.')
 ->group(function() {
-    Route::post('/shipping/{order}', 'shippingAddress')->name('shipping');
-    Route::post('/session/{order}', 'session')->name('session');
-    Route::get('/status', 'status')->name('status');
-    Route::post('/stripe-webhook', 'processSessionEvents')
-        ->withoutMiddleware('auth:sanctum')->name('stripe-webhook');
+    Route::post('/shipping/{order}', 'shippingAddress')
+    ->middleware('auth:sanctum')
+    ->name('shipping');
+    Route::post('/session/{order}', 'session')
+    ->middleware('auth:sanctum')
+    ->name('session');
+    Route::get('/status/{session}', 'status')->name('status');
+    Route::post('/stripe-webhook', 'processSessionEvents')->name('stripe-webhook');
 });
 
 
 
-Route::apiResource('orders', controller: OrderController::class)->middleware('auth:sanctum');
-
-//Route::apiResource('payment_method', controller: PaymentMethodController::class)->middleware('auth:sanctum');
+Route::apiResource('orders', controller: OrderController::class)
+->middleware('auth:sanctum')
+->only(['index', 'store', 'show']);
 
 Route::apiResource('addresses', controller: AddressController::class)->middleware('auth:sanctum');
 

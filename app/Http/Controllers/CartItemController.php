@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\Auth;
 class CartItemController extends Controller
 {
     private $storeRules = [
-        'quantity' => 'required | integer | gte:0',
+        'quantity' => 'required | integer | gt:0',
         'productid' => 'required | exists:products,id'
     ];
 
@@ -83,7 +83,7 @@ class CartItemController extends Controller
         $input = ResponseService::validateOrError($request, $this->updateRules);
 
         if ($cartItem->userid !== Auth::id()) {
-            return ResponseService::sendError('Item not found for this user. ' . 'Cart item user id: ' . $cartItem->userid . ', Authenticated user id: ' . Auth::id(), Response::HTTP_NOT_FOUND);
+            ResponseService::sendError('Item not found for this user. ' . 'Cart item user id: ' . $cartItem->userid . ', Authenticated user id: ' . Auth::id(), Response::HTTP_NOT_FOUND);
         }
 
         $cartItem->update($input);

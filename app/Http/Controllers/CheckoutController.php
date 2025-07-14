@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Resources\OrderResource;
+use App\Http\Resources\PaymentResource;
 use App\Models\Address;
 use App\Models\Order;
 use App\services\CartService;
@@ -16,6 +17,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+use Stripe\Checkout\Session;
 use UnexpectedValueException;
 
 class CheckoutController extends Controller
@@ -82,11 +84,9 @@ class CheckoutController extends Controller
             ResponseService::sendError('Webhook error while parsing basic request.');
         }
 
-        Log::info($event->type . ': ' . (bool) in_array($event->type, ['payment_intent.succeeded', 'payment_intent.failed']));
-
         if (in_array($event->type, ['payment_intent.succeeded', 'payment_intent.failed']))
         {
-            Log::info('Reveived event: ' . $event->type);
+            Log::info('Received event: ' . $event->type);
 
             $payment_intent = $event->data->object;
             $payment = PaymentService::storePayment($payment_intent);
@@ -98,9 +98,13 @@ class CheckoutController extends Controller
                 Log::info('order status: ' . $payment->order->status);
                 Log::info('cart items: ' . $payment->order->user->cartitems);
             }
+
+            return ResponseService::sendResponse('Event processed successfully.', ['payment' => new PaymentResource($payment), 'order' => new OrderResource($payment->order)]);
         }
         else {
             Log::alert('Received unknown event type: ' . $event->type);
+
+            return ResponseService::sendResponse('Unknown event type: ' . $event);
         }
 
         http_response_code(200);
@@ -115,19 +119,15 @@ class CheckoutController extends Controller
     /**
      * Get checkout session status
      */
-    public function status(Request $request)
+    public function status(string $sessionId)
     {
         try {
-            $session = new StripeService()->retrieveStripeCheckoutSession($request->session_id);
-
-            if (Auth::user()->email !== $session->customer_details->email) {
-                ResponseService::sendError('Unauthorized.', Response::HTTP_UNAUTHORIZED);
-            }
+            $session = new StripeService()->retrieveStripeCheckoutSession($sessionId);
 
             return ResponseService::sendResponse('Checkout session status retreived successfully.', ['status' => $session->status], Response::HTTP_OK);
 
-          } catch (Error $e) {
-            ResponseService::sendError($e->getMessage(), Response::HTTP_INTERNAL_SERVER_ERROR);
-          }
+        } catch (Error $e) {
+          ResponseService::sendError($e->getMessage(), Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
     }
 }

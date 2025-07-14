@@ -50,7 +50,7 @@ class OrderController extends Controller
     {
         $order = OrderService::initializeOrder(Auth::user());
 
-        $this->respondWithOne('Order created successfully.', $order);
+        return $this->respondWithOne('Order created successfully.', $order);
     }
 
     /**
@@ -63,24 +63,5 @@ class OrderController extends Controller
         }
 
         return $this->respondWithOne('Order retreived successfully.', $order);
-    }
-
-    /**
-     * Check payment status
-     * Store payment
-     * Define order shipping address
-     * Update order status
-     */
-    public function update(Request $request, Order $order)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Order $order)
-    {
-        //
     }
 }
