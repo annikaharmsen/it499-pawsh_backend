@@ -18,7 +18,7 @@ class CartItemController extends Controller
     ];
 
     private $updateRules = [
-        'quantity' => 'required | integer | gte:0',
+        'quantity' => 'required | integer | gt:0',
     ];
 
     public function respondWithOne(String $message, CartItem $cartitem): JsonResponse {
