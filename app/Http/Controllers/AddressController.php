@@ -58,8 +58,8 @@ class AddressController extends Controller
     {
         $input = ResponseService::validateOrError($request, $this->storeRules);
 
-        $address = new Address($input);
-        $address['userid'] = Auth::id();
+        $input['userid'] = Auth::id();
+        $address = Address::firstOrCreate($input);
         ResponseService::saveOrError($address);
 
         return $this->respondWithOne('Address saved successfully.', $address);
